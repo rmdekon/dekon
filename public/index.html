@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEKON — Personal Finance Tracker</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .ghana-gradient { background: linear-gradient(90deg, #CE1126 0%, #FCD116 50%, #006B3F 100%); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .fade-in { animation: fadeIn .25s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity:1; transform: translateY(0);} }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Top Ghana Accent Ribbon -->
+    <div class="h-1.5 w-full ghana-gradient"></div>
+
+    <!-- ============================= AUTH SCREEN ============================= -->
+    <div id="auth-screen" class="hidden min-h-[calc(100vh-6px)] flex items-center justify-center p-4 bg-slate-900">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden fade-in">
+            <div class="ghana-gradient h-1.5 w-full"></div>
+            <div class="p-8">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                        <i class="fa-solid fa-wallet text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-extrabold tracking-wider text-slate-900">DEKON</h1>
+                        <p class="text-[11px] text-slate-500 font-semibold tracking-widest uppercase">Finance Hub 🇬🇭 — Sign in</p>
+                    </div>
+                </div>
+
+                <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
+                    <button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-lg text-sm font-bold bg-white shadow text-slate-900">Sign in</button>
+                    <button id="tab-register" onclick="switchAuthTab('register')" class="flex-1 py-2 rounded-lg text-sm font-bold text-slate-500">Create account</button>
+                </div>
+
+                <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                    <div id="name-field" class="hidden">
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Full name</label>
+                        <input type="text" id="auth-name" placeholder="e.g. Kofi Mensah" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Email</label>
+                        <input type="email" id="auth-email" required placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Password</label>
+                        <input type="password" id="auth-password" required minlength="6" placeholder="At least 6 characters" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none">
+                    </div>
+
+                    <div id="auth-error" class="hidden text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2"></div>
+
+                    <button type="submit" id="auth-submit" class="w-full bg-slate-950 hover:bg-slate-800 text-white text-sm font-bold py-3 rounded-xl transition shadow-md">
+                        Sign in
+                    </button>
+                </form>
+
+                <div class="flex items-center gap-3 my-6">
+                    <div class="flex-1 h-px bg-slate-200"></div>
+                    <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">or</span>
+                    <div class="flex-1 h-px bg-slate-200"></div>
+                </div>
+
+                <a id="google-btn" href="/api/auth/google" class="flex items-center justify-center gap-3 w-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold py-3 rounded-xl transition">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
+                    Continue with Google
+                </a>
+
+                <p id="google-note" class="hidden text-[11px] text-center text-slate-400 mt-3">
+                    Google sign-in is disabled until the server is configured with Google OAuth keys.
+                </p>
+
+                <p class="text-[11px] text-center text-slate-400 mt-6">
+                    By continuing you agree to DEKON's terms. Your data is stored privately per account.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading splash shown before auth check completes -->
+    <div id="boot-loader" class="min-h-[calc(100vh-6px)] flex items-center justify-center bg-slate-900 text-white">
+        <div class="text-center">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <i class="fa-solid fa-wallet text-white text-2xl"></i>
+            </div>
+            <p class="text-sm text-slate-300 font-semibold">Loading DEKON…</p>
+        </div>
+    </div>
+
+    <!-- ============================= APP SHELL ============================= -->
+    <div id="app-shell" class="hidden flex-col lg:flex-row min-h-screen flex-1">
+        <!-- Sidebar Navigation -->
+        <aside class="w-full lg:w-64 bg-slate-900 text-white flex-shrink-0 flex flex-col justify-between border-r border-slate-800">
+            <div>
+                <div class="p-6 flex items-center justify-between border-b border-slate-800">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                            <i class="fa-solid fa-wallet text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-extrabold tracking-wider text-white">DEKON</h1>
+                            <p class="text-[10px] text-slate-400 font-semibold tracking-widest uppercase">Finance Hub 🇬🇭</p>
+                        </div>
+                    </div>
+                </div>
+
+                <nav class="p-4 space-y-1.5">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 bg-slate-800 text-emerald-400">
+                        <i class="fa-solid fa-chart-pie text-lg w-5"></i><span>Dashboard</span>
+                    </button>
+                    <button onclick="switchTab('analytics')" id="nav-analytics" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-slate-400 hover:bg-slate-800/50 hover:text-white">
+                        <i class="fa-solid fa-chart-line text-lg w-5"></i><span>Deep Analytics</span>
+                    </button>
+                    <button onclick="switchTab('transactions')" id="nav-transactions" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-slate-400 hover:bg-slate-800/50 hover:text-white">
+                        <i class="fa-solid fa-table-list text-lg w-5"></i><span>Transactions</span>
+                    </button>
+                    <button onclick="switchTab('budget')" id="nav-budget" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-slate-400 hover:bg-slate-800/50 hover:text-white">
+                        <i class="fa-solid fa-sliders text-lg w-5"></i><span>Budget Manager</span>
+                    </button>
+                </nav>
+            </div>
+
+            <div class="p-4 border-t border-slate-800 text-xs text-slate-500 flex flex-col gap-2">
+                <div class="flex items-center justify-between">
+                    <span>Ghana Cedi (GH₵) Tracker</span>
+                    <span class="text-emerald-400 font-semibold">Online</span>
+                </div>
+                <div class="flex justify-between items-center text-[10px] text-slate-600">
+                    <span>© 2026 DEKON Corp.</span><span>v2.2</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Workspace -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+            <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 sticky top-0 z-30 shadow-sm shadow-slate-100/50">
+                <div>
+                    <h2 id="page-title" class="text-xl font-bold text-slate-900">Financial Dashboard</h2>
+                    <p class="text-xs text-slate-500 mt-1">Real-time overview of your local and foreign assets calculated in GH₵</p>
+                </div>
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <button onclick="openTransactionModal()" class="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition duration-200 shadow-sm">
+                        <i class="fa-solid fa-plus text-emerald-400"></i> Record Transaction
+                    </button>
+                    <button onclick="clearAllData()" class="p-2.5 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition duration-200 border border-slate-200" title="Clear all my transactions">
+                        <i class="fa-solid fa-broom"></i>
+                    </button>
+
+                    <!-- User menu -->
+                    <div class="relative">
+                        <button onclick="toggleUserMenu()" class="flex items-center gap-2 pl-1 pr-3 py-1 rounded-xl border border-slate-200 hover:bg-slate-50 transition">
+                            <div id="user-avatar" class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-bold">U</div>
+                            <span id="user-name" class="text-xs font-bold text-slate-700 hidden sm:block">User</span>
+                            <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+                        </button>
+                        <div id="user-menu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-40">
+                            <div class="p-3 border-b border-slate-100">
+                                <p id="menu-name" class="text-sm font-bold text-slate-800 truncate">User</p>
+                                <p id="menu-email" class="text-[11px] text-slate-500 truncate">email</p>
+                            </div>
+                            <button onclick="logout()" class="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition">
+                                <i class="fa-solid fa-right-from-bracket"></i> Sign out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-6 space-y-6 flex-1">
+                <!-- DASHBOARD -->
+                <section id="dashboard" class="tab-content active space-y-6">
+                    <div class="rounded-2xl border-l-4 border-l-[#CE1126] bg-white p-4 shadow-sm border border-slate-200/80 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">🇬🇭</div>
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-800">Cedi Financial Portal Active</h4>
+                                <p class="text-xs text-slate-500">Live exchange tracking, budget warnings, and savings analytics configured for Ghana market structures.</p>
+                            </div>
+                        </div>
+                        <div class="hidden md:flex gap-1">
+                            <span class="w-2 h-2 rounded-full bg-[#CE1126]"></span>
+                            <span class="w-2 h-2 rounded-full bg-[#FCD116]"></span>
+                            <span class="w-2 h-2 rounded-full bg-[#006B3F]"></span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition duration-200">
+                            <div class="flex items-center justify-between text-slate-400 mb-2">
+                                <span class="text-xs font-medium uppercase tracking-wider">Monthly Inc.</span>
+                                <div class="p-1.5 bg-emerald-50 rounded-lg text-emerald-600"><i class="fa-solid fa-arrow-trend-up text-xs"></i></div>
+                            </div>
+                            <div><span class="text-[10px] text-slate-400">Current Month</span><h3 class="text-lg font-extrabold text-slate-900 mt-0.5" id="kpi-monthly-income">GH₵ 0.00</h3></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition duration-200">
+                            <div class="flex items-center justify-between text-slate-400 mb-2">
+                                <span class="text-xs font-medium uppercase tracking-wider">Expenses</span>
+                                <div class="p-1.5 bg-red-50 rounded-lg text-red-600"><i class="fa-solid fa-arrow-trend-down text-xs"></i></div>
+                            </div>
+                            <div><span class="text-[10px] text-slate-400 font-medium text-red-500" id="kpi-budget-warning">Safe Spend Limit</span><h3 class="text-lg font-extrabold text-slate-900 mt-0.5" id="kpi-monthly-expense">GH₵ 0.00</h3></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition duration-200">
+                            <div class="flex items-center justify-between text-slate-400 mb-2">
+                                <span class="text-xs font-medium uppercase tracking-wider">Balance</span>
+                                <div class="p-1.5 bg-blue-50 rounded-lg text-blue-600"><i class="fa-solid fa-scale-balanced text-xs"></i></div>
+                            </div>
+                            <div><span class="text-[10px] text-slate-400">Net Leftover</span><h3 class="text-lg font-extrabold text-slate-900 mt-0.5" id="kpi-balance">GH₵ 0.00</h3></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition duration-200">
+                            <div class="flex items-center justify-between text-slate-400 mb-2">
+                                <span class="text-xs font-medium uppercase tracking-wider">Savings Rate</span>
+                                <div class="p-1.5 bg-purple-50 rounded-lg text-purple-600"><i class="fa-solid fa-piggy-bank text-xs"></i></div>
+                            </div>
+                            <div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5 mt-1 mb-2"><div id="savings-rate-bar" class="bg-purple-600 h-1.5 rounded-full" style="width: 0%"></div></div>
+                                <h3 class="text-lg font-extrabold text-slate-900" id="kpi-savings-rate">0%</h3>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition duration-200">
+                            <div class="flex items-center justify-between text-slate-400 mb-2">
+                                <span class="text-xs font-medium uppercase tracking-wider">Total Income</span>
+                                <div class="p-1.5 bg-indigo-50 rounded-lg text-indigo-600"><i class="fa-solid fa-chart-line text-xs"></i></div>
+                            </div>
+                            <div><span class="text-[10px] text-slate-400 font-medium">All Time</span><h3 class="text-lg font-extrabold text-slate-900 mt-0.5" id="kpi-total-income">GH₵ 0.00</h3></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition duration-200">
+                            <div class="flex items-center justify-between text-slate-400 mb-2">
+                                <span class="text-xs font-medium uppercase tracking-wider">Net Worth</span>
+                                <div class="p-1.5 bg-amber-50 rounded-lg text-amber-600"><i class="fa-solid fa-vault text-xs"></i></div>
+                            </div>
+                            <div><span class="text-[10px] text-slate-400 font-medium">Assets - Liabilities</span><h3 class="text-lg font-extrabold text-slate-900 mt-0.5" id="kpi-networth">GH₵ 0.00</h3></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition duration-200">
+                            <div class="flex items-center justify-between text-slate-400 mb-2">
+                                <span class="text-xs font-medium uppercase tracking-wider">LOAN / DEBT</span>
+                                <div class="p-1.5 bg-rose-50 rounded-lg text-rose-600"><i class="fa-solid fa-handshake-angle text-xs"></i></div>
+                            </div>
+                            <div><span class="text-[10px] text-slate-400 font-medium text-rose-500">Payable Liabilities</span><h3 class="text-lg font-extrabold text-slate-900 mt-0.5" id="kpi-loan">GH₵ 0.00</h3></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                            <div><p class="text-xs text-slate-400 uppercase font-semibold">Top Spending Class</p><h4 class="text-lg font-bold text-slate-800 mt-1" id="insight-top-spending">Loading...</h4></div>
+                            <div class="w-12 h-12 bg-red-50 text-red-500 rounded-xl flex items-center justify-center text-xl"><i class="fa-solid fa-fire-flame-curved"></i></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                            <div><p class="text-xs text-slate-400 uppercase font-semibold">Average Daily Spend</p><h4 class="text-lg font-bold text-slate-800 mt-1" id="insight-avg-daily">GH₵ 0.00</h4></div>
+                            <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl"><i class="fa-solid fa-calendar-day"></i></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                            <div><p class="text-xs text-slate-400 uppercase font-semibold">Monthly Limit Standing</p><h4 class="text-lg font-bold text-slate-800 mt-1" id="insight-budget-percent">0% Sped</h4></div>
+                            <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl"><i class="fa-solid fa-gauge-high"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-slate-800 text-sm">Income vs Expenses Analysis (6 Months)</h3>
+                                <div class="flex items-center gap-4 text-xs text-slate-500">
+                                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-[#006B3F]"></span> Income</span>
+                                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-[#CE1126]"></span> Expense</span>
+                                </div>
+                            </div>
+                            <div class="h-80 relative"><canvas id="chart-income-vs-expenses-dash"></canvas></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                            <h3 class="font-bold text-slate-800 text-sm mb-4">Expense Breakdown</h3>
+                            <div class="h-60 relative flex items-center justify-center"><canvas id="chart-expense-doughnut-dash"></canvas></div>
+                            <div id="expense-legend" class="mt-4 grid grid-cols-2 gap-2 text-xs text-slate-500 max-h-24 overflow-y-auto custom-scrollbar"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                            <h3 class="font-bold text-slate-800 text-sm mb-4">Income Allocation Source Pie</h3>
+                            <div class="h-60 relative flex items-center justify-center"><canvas id="chart-income-pie-dash"></canvas></div>
+                        </div>
+                        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-slate-800 text-sm">Recent Ledger Activity</h3>
+                                <button onclick="switchTab('transactions')" class="text-xs text-emerald-500 hover:text-emerald-600 font-bold">View Ledger →</button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead><tr class="text-slate-400 text-[10px] tracking-wider uppercase border-b border-slate-100 pb-2">
+                                        <th class="pb-2">Date</th><th class="pb-2">Description</th><th class="pb-2">Category</th><th class="pb-2 text-right">Amount</th>
+                                    </tr></thead>
+                                    <tbody id="dashboard-recent-tx" class="divide-y divide-slate-50 text-xs"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ANALYTICS -->
+                <section id="analytics" class="tab-content space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                            <h3 class="font-bold text-slate-800 text-sm mb-2">30-Day Spending Profile Trend</h3>
+                            <p class="text-xs text-slate-400 mb-4">Visual trace of daily outgoing dynamic capital flows.</p>
+                            <div class="h-72 relative"><canvas id="chart-30day-spending"></canvas></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                            <h3 class="font-bold text-slate-800 text-sm mb-2">Cumulative Savings & Net Accrual</h3>
+                            <p class="text-xs text-slate-400 mb-4">Tracking your target reserves growth over active periods.</p>
+                            <div class="h-72 relative"><canvas id="chart-savings-growth"></canvas></div>
+                        </div>
+                        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                            <h3 class="font-bold text-slate-800 text-sm mb-4">Category Resource Utilisation Matrix</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs border-collapse">
+                                    <thead><tr class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+                                        <th class="p-3">Category Name</th><th class="p-3">Budget Allocations</th><th class="p-3">Actual Spending Pool</th><th class="p-3">Allocation Remaining</th><th class="p-3">Utilization Curve</th><th class="p-3 text-right">Status</th>
+                                    </tr></thead>
+                                    <tbody id="analytics-category-table" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TRANSACTIONS -->
+                <section id="transactions" class="tab-content space-y-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div class="relative">
+                                <input type="text" id="tx-search" oninput="applyFilters()" placeholder="Search description..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 pl-10 text-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
+                            </div>
+                            <select id="tx-filter-type" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition">
+                                <option value="all">All Types (In/Out)</option><option value="income">Income Only</option><option value="expense">Expense Only</option>
+                            </select>
+                            <select id="tx-filter-category" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition">
+                                <option value="all">All Categories</option>
+                            </select>
+                            <select id="tx-sort" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition">
+                                <option value="date-desc">Date: Newest First</option><option value="date-asc">Date: Oldest First</option><option value="amount-desc">Value: High to Low</option><option value="amount-asc">Value: Low to High</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between border-t border-slate-100 pt-3">
+                            <span class="text-xs text-slate-400" id="tx-match-count">Showing 0 transactions</span>
+                            <button onclick="exportToCSV()" class="flex items-center gap-1.5 text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3.5 py-2 rounded-xl transition duration-150">
+                                <i class="fa-solid fa-file-csv"></i> Export to CSV / Excel
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col justify-between">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead class="bg-slate-950 text-white uppercase text-[10px] tracking-wider sticky top-0"><tr>
+                                    <th class="p-3.5 font-bold">Date Record</th><th class="p-3.5 font-bold">Details Description</th><th class="p-3.5 font-bold">Type</th><th class="p-3.5 font-bold">Category Class</th><th class="p-3.5 font-bold text-right">Value (GH₵)</th><th class="p-3.5 font-bold text-center">Delete</th>
+                                </tr></thead>
+                                <tbody id="ledger-table-body" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                        <div class="bg-slate-900 text-white p-4 flex items-center justify-between font-bold text-sm">
+                            <span class="uppercase tracking-wider text-slate-400 text-xs">Dynamic Ledger Net Valuation Total</span>
+                            <span id="ledger-net-total" class="text-emerald-400">GH₵ 0.00</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- BUDGET -->
+                <section id="budget" class="tab-content space-y-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm max-w-2xl mx-auto space-y-6">
+                        <div class="border-b border-slate-100 pb-4">
+                            <h3 class="font-bold text-slate-800 text-lg">Dynamic Cedi Budget Manager</h3>
+                            <p class="text-xs text-slate-400">Establish and adjust strict threshold allocations for domestic cost categories to lock in positive savings rates.</p>
+                        </div>
+                        <div id="budget-thresholds-container" class="space-y-4"></div>
+                        <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                            <p class="text-xs text-slate-400 italic">Values saved to your account on the server.</p>
+                            <button onclick="saveBudgets()" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition duration-150 shadow-md shadow-emerald-500/10">Commit Budget Benchmarks</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- TRANSACTION MODAL -->
+    <div id="tx-modal" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden fade-in">
+            <div class="ghana-gradient h-1 w-full"></div>
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div><h3 class="font-bold text-slate-800 text-base">Record Financial Flow</h3><p class="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">Asset Registration Registry</p></div>
+                <button onclick="closeTransactionModal()" class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="tx-form" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Date</label>
+                    <input type="date" id="form-date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500/20 outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Description</label>
+                    <input type="text" id="form-desc" required placeholder="e.g. Salary, Trotro, Chop money" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500/20 outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Accounting Allocation</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="border border-slate-200 rounded-xl p-3 flex items-center gap-2 cursor-pointer hover:bg-emerald-50/20 transition">
+                            <input type="radio" name="form-type" value="income" checked onclick="toggleCategoryOptions('income')" class="text-emerald-500 focus:ring-emerald-500">
+                            <span class="text-xs font-semibold text-emerald-600">INFLOW (Income)</span>
+                        </label>
+                        <label class="border border-slate-200 rounded-xl p-3 flex items-center gap-2 cursor-pointer hover:bg-red-50/20 transition">
+                            <input type="radio" name="form-type" value="expense" onclick="toggleCategoryOptions('expense')" class="text-red-500 focus:ring-red-500">
+                            <span class="text-xs font-semibold text-red-600">OUTFLOW (Expense)</span>
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Target Category Class</label>
+                    <select id="form-category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500/20 outline-none"></select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Valuation Amount (GH₵)</label>
+                    <input type="number" step="0.01" id="form-amount" required placeholder="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500/20 outline-none">
+                </div>
+                <div class="pt-4 flex items-center justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closeTransactionModal()" class="text-xs font-semibold text-slate-500 hover:text-slate-800 px-4 py-2 hover:bg-slate-50 rounded-xl">Cancel</button>
+                    <button type="submit" class="bg-slate-950 hover:bg-slate-800 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md transition duration-150">Confirm Ledger Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 z-[60] bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl"></div>
+
+    <script>
+        /* ============================================================
+           CONFIG & STATE
+        ============================================================ */
+        const INCOME_CATEGORIES = ["Salary (GOG/Private)", "Side Hustle / Trading", "Momo Remittance", "Investment Dividends", "Other Inflows"];
+        const EXPENSE_CATEGORIES = ["Food & Chop Money", "Transport / Trotro", "Rent & Utilities", "Momo Charges & Fees", "Entertainment & Fun", "Loan Repayment", "Miscellaneous"];
+
+        const DEFAULT_BUDGETS = [
+            { category: "Food & Chop Money", limit: 2500.00 },
+            { category: "Transport / Trotro", limit: 1200.00 },
+            { category: "Rent & Utilities", limit: 4000.00 },
+            { category: "Momo Charges & Fees", limit: 800.00 },
+            { category: "Entertainment & Fun", limit: 1500.00 },
+            { category: "Loan Repayment", limit: 2000.00 },
+            { category: "Miscellaneous", limit: 1500.00 }
+        ];
+
+        let currentUser = null;
+        let transactions = [];
+        let budgets = [];
+        let chartInstances = {};
+        let authMode = 'login';
+
+        /* ============================================================
+           BOOT
+        ============================================================ */
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Handle redirect back from Google
+            const params = new URLSearchParams(location.search);
+            if (params.get('auth') === 'google-failed') showToast('Google sign-in failed or was cancelled.');
+            if (params.get('auth')) history.replaceState({}, '', location.pathname);
+
+            try {
+                const res = await fetch('/api/auth/me', { credentials: 'include' });
+                const data = await res.json();
+                configureGoogle(data.googleEnabled);
+                if (data.user) {
+                    currentUser = data.user;
+                    await loadUserData();
+                    showApp();
+                } else {
+                    showAuth();
+                }
+            } catch (err) {
+                console.error(err);
+                showAuth();
+            }
+        });
+
+        function configureGoogle(enabled) {
+            const note = document.getElementById('google-note');
+            const btn = document.getElementById('google-btn');
+            if (enabled) {
+                note.classList.add('hidden');
+                btn.classList.remove('pointer-events-none', 'opacity-50');
+            } else {
+                note.classList.remove('hidden');
+                btn.classList.add('pointer-events-none', 'opacity-50');
+            }
+        }
+
+        function showAuth() {
+            document.getElementById('boot-loader').classList.add('hidden');
+            document.getElementById('app-shell').classList.add('hidden');
+            document.getElementById('app-shell').classList.remove('flex');
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('auth-screen').classList.add('flex');
+        }
+
+        async function showApp() {
+            document.getElementById('boot-loader').classList.add('hidden');
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('auth-screen').classList.remove('flex');
+            const shell = document.getElementById('app-shell');
+            shell.classList.remove('hidden');
+            shell.classList.add('flex');
+
+            renderUser();
+            populateCategoryDropdowns();
+            renderAll();
+        }
+
+        function renderUser() {
+            const initials = (currentUser.name || currentUser.email || 'U').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+            document.getElementById('user-avatar').innerText = initials;
+            document.getElementById('user-name').innerText = currentUser.name || currentUser.email;
+            document.getElementById('menu-name').innerText = currentUser.name || 'Account';
+            document.getElementById('menu-email').innerText = currentUser.email;
+        }
+
+        /* ============================================================
+           AUTH UI
+        ============================================================ */
+        function switchAuthTab(mode) {
+            authMode = mode;
+            const loginTab = document.getElementById('tab-login');
+            const regTab = document.getElementById('tab-register');
+            const nameField = document.getElementById('name-field');
+            const submit = document.getElementById('auth-submit');
+            if (mode === 'register') {
+                regTab.classList.add('bg-white', 'shadow', 'text-slate-900');
+                regTab.classList.remove('text-slate-500');
+                loginTab.classList.remove('bg-white', 'shadow', 'text-slate-900');
+                loginTab.classList.add('text-slate-500');
+                nameField.classList.remove('hidden');
+                submit.innerText = 'Create account';
+            } else {
+                loginTab.classList.add('bg-white', 'shadow', 'text-slate-900');
+                loginTab.classList.remove('text-slate-500');
+                regTab.classList.remove('bg-white', 'shadow', 'text-slate-900');
+                regTab.classList.add('text-slate-500');
+                nameField.classList.add('hidden');
+                submit.innerText = 'Sign in';
+            }
+            document.getElementById('auth-error').classList.add('hidden');
+        }
+
+        async function handleAuthSubmit(e) {
+            e.preventDefault();
+            const errEl = document.getElementById('auth-error');
+            errEl.classList.add('hidden');
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const name = document.getElementById('auth-name').value.trim();
+            const submit = document.getElementById('auth-submit');
+            submit.disabled = true;
+            submit.innerText = 'Please wait…';
+            try {
+                const endpoint = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+                const body = authMode === 'register' ? { name, email, password } : { email, password };
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(body),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+                currentUser = data.user;
+                await loadUserData();
+                showApp();
+                showToast(authMode === 'register' ? 'Account created — welcome!' : 'Signed in.');
+            } catch (err) {
+                errEl.innerText = err.message;
+                errEl.classList.remove('hidden');
+            } finally {
+                submit.disabled = false;
+                submit.innerText = authMode === 'register' ? 'Create account' : 'Sign in';
+            }
+        }
+
+        async function logout() {
+            await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            currentUser = null;
+            transactions = [];
+            budgets = [];
+            Object.values(chartInstances).forEach(c => { try { c.destroy(); } catch (_) {} });
+            chartInstances = {};
+            toggleUserMenu(false);
+            document.getElementById('auth-form').reset();
+            showAuth();
+        }
+
+        function toggleUserMenu(force) {
+            const menu = document.getElementById('user-menu');
+            if (typeof force === 'boolean') {
+                menu.classList.toggle('hidden', !force);
+            } else {
+                menu.classList.toggle('hidden');
+            }
+        }
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('user-menu');
+            if (menu && !menu.classList.contains('hidden')) {
+                if (!e.target.closest('#user-menu') && !e.target.closest('button[onclick="toggleUserMenu()"]')) {
+                    menu.classList.add('hidden');
+                }
+            }
+        });
+
+        /* ============================================================
+           DATA API
+        ============================================================ */
+        async function loadUserData() {
+            const res = await fetch('/api/state', { credentials: 'include' });
+            if (!res.ok) throw new Error('Failed to load data');
+            const data = await res.json();
+            transactions = data.transactions || [];
+            budgets = (data.budgets || []).map(b => ({ category: b.category, limit: b.limit }));
+            if (budgets.length === 0) budgets = JSON.parse(JSON.stringify(DEFAULT_BUDGETS));
+        }
+
+        // Delete every transaction for the signed-in user; reset budgets to defaults.
+        async function clearAllData() {
+            if (!confirm('Delete ALL your transactions? This cannot be undone. Budget limits will be reset to defaults.')) return;
+            try {
+                const res = await fetch('/api/transactions', { method: 'DELETE', credentials: 'include' });
+                if (!res.ok) throw new Error('Could not clear transactions.');
+                const data = await apiSaveBudgets(DEFAULT_BUDGETS);
+                transactions = [];
+                budgets = (data.budgets || DEFAULT_BUDGETS).map(b => ({ category: b.category, limit: b.limit }));
+                renderAll();
+                showToast('All transactions cleared.');
+            } catch (err) {
+                showToast(err.message);
+            }
+        }
+
+        async function apiCreateTransaction(tx) {
+            const res = await fetch('/api/transactions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(tx),
+            });
+            if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Could not save transaction'); }
+            return res.json();
+        }
+
+        async function apiDeleteTransaction(id) {
+            const res = await fetch(`/api/transactions/${id}`, { method: 'DELETE', credentials: 'include' });
+            if (!res.ok) throw new Error('Could not delete transaction');
+        }
+
+        async function apiSaveBudgets(list) {
+            const res = await fetch('/api/budgets', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ budgets: list }),
+            });
+            if (!res.ok) throw new Error('Could not save budgets');
+            return res.json();
+        }
+
+        /* ============================================================
+           NAV / TABS
+        ============================================================ */
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('aside nav button').forEach(el => {
+                el.classList.remove('bg-slate-800', 'text-emerald-400');
+                el.classList.add('text-slate-400', 'hover:bg-slate-800/50', 'hover:text-white');
+            });
+            document.getElementById(tabId).classList.add('active');
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            activeNav.classList.add('bg-slate-800', 'text-emerald-400');
+            activeNav.classList.remove('text-slate-400', 'hover:bg-slate-800/50', 'hover:text-white');
+            const titles = { dashboard: 'Financial Dashboard', analytics: 'Deep Analytics & Projections', transactions: 'Master Transaction Ledger', budget: 'Cedi Budget Manager' };
+            document.getElementById('page-title').innerText = titles[tabId];
+            if (tabId === 'analytics') renderAnalyticsCharts();
+        }
+
+        function populateCategoryDropdowns() {
+            const txFilterCat = document.getElementById('tx-filter-category');
+            txFilterCat.innerHTML = '<option value="all">All Categories</option>';
+            [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES].forEach(cat => {
+                txFilterCat.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+        }
+
+        function toggleCategoryOptions(type) {
+            const formCategory = document.getElementById('form-category');
+            formCategory.innerHTML = '';
+            const cats = (type === 'income') ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+            cats.forEach(cat => { formCategory.innerHTML += `<option value="${cat}">${cat}</option>`; });
+        }
+
+        /* ============================================================
+           MODAL
+        ============================================================ */
+        function openTransactionModal() {
+            document.getElementById('form-date').value = new Date().toISOString().substring(0, 10);
+            toggleCategoryOptions('income');
+            document.getElementById('tx-modal').classList.remove('hidden');
+        }
+        function closeTransactionModal() {
+            document.getElementById('tx-modal').classList.add('hidden');
+            document.getElementById('tx-form').reset();
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const tx = {
+                date: document.getElementById('form-date').value,
+                description: document.getElementById('form-desc').value,
+                type: document.querySelector('input[name="form-type"]:checked').value,
+                category: document.getElementById('form-category').value,
+                amount: parseFloat(document.getElementById('form-amount').value),
+            };
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true; btn.innerText = 'Saving…';
+            try {
+                const saved = await apiCreateTransaction(tx);
+                transactions.push(saved);
+                closeTransactionModal();
+                renderAll();
+                showToast('Transaction recorded.');
+            } catch (err) {
+                showToast(err.message);
+            } finally {
+                btn.disabled = false; btn.innerText = 'Confirm Ledger Entry';
+            }
+        }
+
+        async function deleteTransaction(id) {
+            if (!confirm('Are you sure you want to permanently delete this financial record?')) return;
+            try {
+                await apiDeleteTransaction(id);
+                transactions = transactions.filter(tx => tx.id !== id);
+                renderAll();
+                showToast('Transaction deleted.');
+            } catch (err) {
+                showToast(err.message);
+            }
+        }
+
+        /* ============================================================
+           CALCULATIONS
+        ============================================================ */
+        function computeAggregates() {
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth();
+            let monthlyIncome = 0, monthlyExpense = 0, totalIncome = 0, totalExpense = 0, loan = 0;
+            const categorySpends = {}, incomeCategoryAllocations = {}, last30DaysSpends = {};
+            const date30DaysAgo = new Date(); date30DaysAgo.setDate(today.getDate() - 30);
+
+            transactions.forEach(tx => {
+                const txDate = new Date(tx.date);
+                const isCurrentMonth = (txDate.getFullYear() === currentYear && txDate.getMonth() === currentMonth);
+                if (tx.type === 'income') {
+                    totalIncome += tx.amount;
+                    if (isCurrentMonth) monthlyIncome += tx.amount;
+                    incomeCategoryAllocations[tx.category] = (incomeCategoryAllocations[tx.category] || 0) + tx.amount;
+                } else if (tx.type === 'expense') {
+                    totalExpense += tx.amount;
+                    if (isCurrentMonth) monthlyExpense += tx.amount;
+                    if (tx.category === 'Loan Repayment') loan += tx.amount;
+                    categorySpends[tx.category] = (categorySpends[tx.category] || 0) + tx.amount;
+                    if (txDate >= date30DaysAgo) last30DaysSpends[tx.date] = (last30DaysSpends[tx.date] || 0) + tx.amount;
+                }
+            });
+
+            // Real, user-driven figures. No simulated reserves or loan targets —
+            // a new/empty account shows zeros until the user adds transactions.
+            const loanLiability = loan; // total actually paid toward "Loan Repayment"
+            const balance = monthlyIncome - monthlyExpense;
+            const savingsRate = monthlyIncome > 0 ? (balance / monthlyIncome) * 100 : 0;
+            // Net worth = total ever earned minus total ever spent (simplified personal net).
+            const netWorth = totalIncome - totalExpense;
+
+            let topCategory = "None", topAmount = 0;
+            for (const [cat, amt] of Object.entries(categorySpends)) {
+                if (amt > topAmount) { topAmount = amt; topCategory = cat; }
+            }
+            const avgDailySpend = monthlyExpense / 30;
+
+            // Last 6 months (including current), built from real transactions only.
+            const months6 = [];
+            const monthLabels = [];
+            const now = new Date();
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+                months6.push({ key, income: 0, expense: 0, net: 0 });
+                monthLabels.push(d.toLocaleDateString('en-GB', { month: 'short' }));
+            }
+            transactions.forEach(tx => {
+                const key = tx.date.substring(0, 7); // YYYY-MM
+                const m = months6.find(x => x.key === key);
+                if (!m) return;
+                if (tx.type === 'income') m.income += tx.amount;
+                else { m.expense += tx.amount; m.net -= tx.amount; }
+            });
+            // Cumulative savings across the 6-month window.
+            let running = 0;
+            const cumulativeSavings = months6.map(m => {
+                running += m.income - m.expense;
+                return Math.max(running, 0);
+            });
+
+            return {
+                monthlyIncome, monthlyExpense, balance, savingsRate,
+                totalIncome, totalExpense, netWorth, loan: loanLiability,
+                topCategory, avgDailySpend,
+                categorySpends, incomeCategoryAllocations, last30DaysSpends,
+                monthLabels,
+                income6: months6.map(m => m.income),
+                expense6: months6.map(m => m.expense),
+                cumulativeSavings,
+            };
+        }
+
+        /* ============================================================
+           RENDER
+        ============================================================ */
+        function renderAll() {
+            const summary = computeAggregates();
+            document.getElementById('kpi-monthly-income').innerText = `GH₵ ${summary.monthlyIncome.toFixed(2)}`;
+            document.getElementById('kpi-monthly-expense').innerText = `GH₵ ${summary.monthlyExpense.toFixed(2)}`;
+            document.getElementById('kpi-balance').innerText = `GH₵ ${summary.balance.toFixed(2)}`;
+            document.getElementById('kpi-savings-rate').innerText = `${summary.savingsRate.toFixed(1)}%`;
+            document.getElementById('savings-rate-bar').style.width = `${Math.min(Math.max(summary.savingsRate, 0), 100)}%`;
+            document.getElementById('kpi-total-income').innerText = `GH₵ ${summary.totalIncome.toFixed(2)}`;
+            document.getElementById('kpi-networth').innerText = `GH₵ ${summary.netWorth.toFixed(2)}`;
+            document.getElementById('kpi-loan').innerText = `GH₵ ${summary.loan.toFixed(2)}`;
+            document.getElementById('insight-top-spending').innerText = summary.topCategory || "None Set";
+            document.getElementById('insight-avg-daily').innerText = `GH₵ ${summary.avgDailySpend.toFixed(2)}`;
+            const budgetUtilRatio = summary.monthlyIncome > 0 ? (summary.monthlyExpense / summary.monthlyIncome) * 100 : 0;
+            document.getElementById('insight-budget-percent').innerText = `${budgetUtilRatio.toFixed(0)}% Sped`;
+
+            const warningEl = document.getElementById('kpi-budget-warning');
+            if (summary.monthlyExpense > summary.monthlyIncome && summary.monthlyIncome > 0) {
+                warningEl.innerText = "Overspent Limit Alert!";
+                warningEl.className = "text-[10px] text-red-500 font-bold uppercase animate-pulse";
+            } else {
+                warningEl.innerText = "Safe Spending Matrix";
+                warningEl.className = "text-[10px] text-emerald-500 font-bold uppercase";
+            }
+
+            renderRecentTransactionsTable();
+            applyFilters();
+            renderBudgetManagerSection();
+            renderCategoryComparisonTable(summary);
+            renderDashboardCharts(summary);
+            renderAnalyticsCharts();
+        }
+
+        function renderDashboardCharts(summary) {
+            const ctx1 = document.getElementById('chart-income-vs-expenses-dash').getContext('2d');
+            destroyChart('dash-bar');
+            chartInstances['dash-bar'] = new Chart(ctx1, {
+                type: 'bar',
+                data: { labels: summary.monthLabels, datasets: [
+                    { label: 'Inflow', data: summary.income6, backgroundColor: '#006B3F', borderRadius: 6 },
+                    { label: 'Outflow', data: summary.expense6, backgroundColor: '#CE1126', borderRadius: 6 }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
+            });
+
+            const ctx2 = document.getElementById('chart-expense-doughnut-dash').getContext('2d');
+            destroyChart('dash-doughnut');
+            const expenseLabels = Object.keys(summary.categorySpends);
+            const expenseData = Object.values(summary.categorySpends);
+            const colors = ['#CE1126','#FCD116','#006B3F','#3b82f6','#8b5cf6','#ec4899','#f97316','#64748b'];
+            chartInstances['dash-doughnut'] = new Chart(ctx2, {
+                type: 'doughnut',
+                data: { labels: expenseLabels, datasets: [{ data: expenseData, backgroundColor: colors.slice(0, expenseLabels.length), borderWidth: 2, borderColor: '#ffffff' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '65%' }
+            });
+            const legendEl = document.getElementById('expense-legend');
+            legendEl.innerHTML = '';
+            expenseLabels.forEach((label, idx) => {
+                legendEl.innerHTML += `<div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background-color: ${colors[idx % colors.length]}"></span><span class="truncate" title="${label}">${label} (GH₵ ${expenseData[idx].toFixed(0)})</span></div>`;
+            });
+
+            const ctx3 = document.getElementById('chart-income-pie-dash').getContext('2d');
+            destroyChart('dash-pie');
+            const incomeLabels = Object.keys(summary.incomeCategoryAllocations);
+            const incomeData = Object.values(summary.incomeCategoryAllocations);
+            const incomeColors = ['#059669','#10b981','#34d399','#6ee7b7','#a7f3d0'];
+            chartInstances['dash-pie'] = new Chart(ctx3, {
+                type: 'pie',
+                data: { labels: incomeLabels, datasets: [{ data: incomeData, backgroundColor: incomeColors.slice(0, incomeLabels.length), borderWidth: 2, borderColor: '#ffffff' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
+            });
+        }
+
+        function renderAnalyticsCharts() {
+            const summary = computeAggregates();
+            const ctx1 = document.getElementById('chart-30day-spending').getContext('2d');
+            destroyChart('analytics-line-30');
+            const dailyLabels = [], dailyValues = [];
+            for (let i = 29; i >= 0; i--) {
+                const d = new Date(); d.setDate(d.getDate() - i);
+                const str = d.toISOString().substring(0, 10);
+                dailyLabels.push(d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }));
+                dailyValues.push(summary.last30DaysSpends[str] || 0);
+            }
+            chartInstances['analytics-line-30'] = new Chart(ctx1, {
+                type: 'line',
+                data: { labels: dailyLabels, datasets: [{ label: 'Daily Flow Out', data: dailyValues, borderColor: '#CE1126', backgroundColor: 'rgba(206,17,38,0.05)', fill: true, tension: 0.3, borderWidth: 2, pointRadius: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } }, x: { grid: { display: false }, ticks: { font: { size: 9 } } } } }
+            });
+
+            const ctx2 = document.getElementById('chart-savings-growth').getContext('2d');
+            destroyChart('analytics-savings-growth');
+            chartInstances['analytics-savings-growth'] = new Chart(ctx2, {
+                type: 'line',
+                data: { labels: summary.monthLabels, datasets: [{ label: 'Cumulative Savings', data: summary.cumulativeSavings, borderColor: '#006B3F', backgroundColor: 'rgba(0,107,63,0.08)', fill: true, tension: 0.3, borderWidth: 3, pointBackgroundColor: '#006B3F' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
+            });
+        }
+
+        function renderCategoryComparisonTable(summary) {
+            const container = document.getElementById('analytics-category-table');
+            container.innerHTML = '';
+            budgets.forEach(b => {
+                const spent = summary.categorySpends[b.category] || 0;
+                const remaining = b.limit - spent;
+                const pct = Math.min((spent / b.limit) * 100, 100);
+                let statusBadge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] px-2.5 py-1 rounded-full font-bold">Safe Under</span>`;
+                if (pct >= 100) statusBadge = `<span class="bg-rose-100 text-rose-800 text-[10px] px-2.5 py-1 rounded-full font-bold">Breached Limit</span>`;
+                else if (pct >= 80) statusBadge = `<span class="bg-amber-100 text-amber-800 text-[10px] px-2.5 py-1 rounded-full font-bold">Warning Threshold</span>`;
+                container.innerHTML += `
+                    <tr>
+                        <td class="p-3 font-semibold text-slate-800">${b.category}</td>
+                        <td class="p-3 text-slate-500">GH₵ ${b.limit.toFixed(2)}</td>
+                        <td class="p-3 font-medium text-slate-900">GH₵ ${spent.toFixed(2)}</td>
+                        <td class="p-3 font-bold ${remaining >= 0 ? 'text-emerald-600' : 'text-red-500'}">GH₵ ${remaining.toFixed(2)}</td>
+                        <td class="p-3 w-1/4"><div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="${pct >= 100 ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-emerald-500'} h-2" style="width: ${pct}%"></div></div></td>
+                        <td class="p-3 text-right">${statusBadge}</td>
+                    </tr>`;
+            });
+        }
+
+        function destroyChart(id) { if (chartInstances[id]) chartInstances[id].destroy(); }
+
+        function renderRecentTransactionsTable() {
+            const container = document.getElementById('dashboard-recent-tx');
+            container.innerHTML = '';
+            const sorted = [...transactions].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+            if (sorted.length === 0) {
+                container.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-400">No transactions yet. Add one!</td></tr>`;
+                return;
+            }
+            sorted.forEach(tx => {
+                const dateForm = new Date(tx.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+                const valSign = tx.type === 'income' ? '+' : '-';
+                const valColor = tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600';
+                container.innerHTML += `
+                    <tr>
+                        <td class="py-2.5 font-medium text-slate-500">${dateForm}</td>
+                        <td class="py-2.5 font-semibold text-slate-950">${tx.description}</td>
+                        <td class="py-2.5 text-slate-400 font-medium">${tx.category}</td>
+                        <td class="py-2.5 text-right font-extrabold ${valColor}">${valSign}GH₵ ${tx.amount.toFixed(2)}</td>
+                    </tr>`;
+            });
+        }
+
+        function applyFilters() {
+            const search = document.getElementById('tx-search').value.toLowerCase();
+            const type = document.getElementById('tx-filter-type').value;
+            const category = document.getElementById('tx-filter-category').value;
+            const sort = document.getElementById('tx-sort').value;
+            let filtered = transactions.filter(tx => {
+                const matchSearch = tx.description.toLowerCase().includes(search);
+                const matchType = type === 'all' || tx.type === type;
+                const matchCategory = category === 'all' || tx.category === category;
+                return matchSearch && matchType && matchCategory;
+            });
+            if (sort === 'date-desc') filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
+            else if (sort === 'date-asc') filtered.sort((a,b) => new Date(a.date) - new Date(b.date));
+            else if (sort === 'amount-desc') filtered.sort((a,b) => b.amount - a.amount);
+            else if (sort === 'amount-asc') filtered.sort((a,b) => a.amount - b.amount);
+
+            const body = document.getElementById('ledger-table-body');
+            body.innerHTML = '';
+            let netSum = 0;
+            filtered.forEach(tx => {
+                const formattedDate = new Date(tx.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                const valSign = tx.type === 'income' ? '+' : '-';
+                const valColor = tx.type === 'income' ? 'text-emerald-600 font-semibold bg-emerald-50' : 'text-rose-600 font-semibold bg-rose-50';
+                netSum += tx.type === 'income' ? tx.amount : -tx.amount;
+                body.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                        <td class="p-3.5 text-slate-500 font-medium">${formattedDate}</td>
+                        <td class="p-3.5 font-bold text-slate-900">${tx.description}</td>
+                        <td class="p-3.5"><span class="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-md ${tx.type === 'income' ? 'bg-emerald-100/50 text-emerald-800' : 'bg-rose-100/50 text-rose-800'}">${tx.type}</span></td>
+                        <td class="p-3.5 text-slate-500 font-medium">${tx.category}</td>
+                        <td class="p-3.5 text-right font-extrabold ${valColor}">${valSign} GH₵ ${tx.amount.toFixed(2)}</td>
+                        <td class="p-3.5 text-center"><button onclick="deleteTransaction('${tx.id}')" class="text-slate-400 hover:text-rose-600 transition w-8 h-8 rounded-full hover:bg-rose-50 inline-flex items-center justify-center"><i class="fa-regular fa-trash-can"></i></button></td>
+                    </tr>`;
+            });
+            document.getElementById('tx-match-count').innerText = `Showing ${filtered.length} of ${transactions.length} transactions match`;
+            const totalEl = document.getElementById('ledger-net-total');
+            totalEl.innerText = `${netSum >= 0 ? '+' : ''}GH₵ ${netSum.toFixed(2)}`;
+            totalEl.className = netSum >= 0 ? 'text-emerald-400 font-extrabold' : 'text-rose-400 font-extrabold';
+        }
+
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Date,Description,Type,Category,Amount(GHS)\n";
+            transactions.forEach(tx => {
+                csvContent += `"${tx.date}","${tx.description.replace(/"/g, '""')}","${tx.type}","${tx.category}",${tx.amount}\n`;
+            });
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csvContent));
+            link.setAttribute("download", `DEKON_Finance_Ledger_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        function renderBudgetManagerSection() {
+            const container = document.getElementById('budget-thresholds-container');
+            container.innerHTML = '';
+            budgets.forEach((b, idx) => {
+                container.innerHTML += `
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <h4 class="font-bold text-sm text-slate-800">${b.category}</h4>
+                            <p class="text-[10px] text-slate-400 uppercase tracking-wide">Monthly Safe Boundary Limit</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-slate-500">GH₵</span>
+                            <input type="number" id="budget-input-${idx}" value="${b.limit.toFixed(2)}" class="w-28 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500/20 outline-none">
+                        </div>
+                    </div>`;
+            });
+        }
+
+        async function saveBudgets() {
+            const updated = budgets.map((b, idx) => {
+                const val = parseFloat(document.getElementById(`budget-input-${idx}`).value);
+                return { category: b.category, limit: (!isNaN(val) && val >= 0) ? val : b.limit };
+            });
+            try {
+                const data = await apiSaveBudgets(updated);
+                budgets = (data.budgets || updated).map(b => ({ category: b.category, limit: b.limit }));
+                renderAll();
+                showToast('Budget targets saved.');
+            } catch (err) {
+                showToast(err.message);
+            }
+        }
+
+        /* ============================================================
+           TOAST
+        ============================================================ */
+        let toastTimer;
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.innerText = msg;
+            el.classList.remove('hidden');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => el.classList.add('hidden'), 2800);
+        }
+    </script>
+</body>
+</html>
