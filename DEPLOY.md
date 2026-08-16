@@ -1,115 +1,112 @@
-# 🚀 Deploy DEKON online for FREE (no credit card)
+# 🚀 Deploy DEKON online for FREE with Vercel (no credit card)
 
-We'll use two free services — **no card required for either**:
+Vercel gives you a real `https://your-app.vercel.app` address, generous free
+usage, and no sleep/spin-down like other free hosts. We'll pair it with a free
+**Turso** cloud database so all accounts and transactions are saved permanently.
 
-- **Turso** → stores your database (free forever, 500 databases, 9 GB)
-- **Render** → hosts the app/site (free plan; sleeps after 15 min of no visitors, but wakes in seconds when someone opens it)
-
-The code already supports both. When you run it on your PC, it uses a local
-database file; when deployed with the `TURSO_*` settings, it uses the cloud DB.
+> Both services are free and **no credit card is required**.
 
 ---
 
 ## Part A — Create your free Turso database
 
-1. Go to **https://turso.tech** and click **Start free** → sign up with GitHub or Google.
-2. Once in the dashboard, click **Create Database**.
-   - Name it anything, e.g. `dekon`
-   - Pick any region (closest to you is fine)
-   - Click **Create**
-3. On the database page, find the **URL** that looks like:
-   ```
-   libsql://dekon--yourname.turso.io
-   ```
-   Copy it — this is your `TURSO_DATABASE_URL`.
-4. Click **Create Token** (top right), choose **Full Access**, leave expiry as **Never**, and click **Create Token**.
-   - Copy the long token that starts with `eyJ...` — this is your `TURSO_AUTH_TOKEN`.
-   - **Save these two values somewhere safe** for Part B.
+1. Go to **https://turso.tech** → **Start free** → sign up with GitHub or Google.
+2. Click **Create Database**. Name it `dekon`, pick any region, and create it.
+3. Copy the **Database URL** (looks like `libsql://dekon-xxxx.turso.io`).
+4. Click **Create Token** (Full Access, no expiry) and copy the token (starts with `eyJ...`).
+   Keep both values — you'll paste them into Vercel in Part C.
 
 ---
 
-## Part B — Put your code on GitHub
+## Part B — Push your code to GitHub
 
-Render deploys straight from GitHub.
-
-1. Create a free GitHub account if you don't have one: https://github.com/signup
-2. Create a **new repository**: https://github.com/new
-   - Name it `dekon` (or anything), set it to **Public**, don't add a README.
-3. Push your code. In PowerShell/terminal **inside your dekon folder**:
-
+1. Create a free account at https://github.com/signup if needed.
+2. Create a new repo at https://github.com/new:
+   - Name: `dekon`
+   - **Public**
+   - Leave all checkboxes (README, .gitignore, license) **unchecked**
+3. In a terminal **inside your `dekon` folder**, run:
    ```bash
    git init
    git add .
    git commit -m "DEKON full stack app"
    git branch -M main
-   git remote add origin https://github.com/YOUR_GITHUB_USERNAME/dekon.git
+   git remote add origin https://github.com/YOUR_USERNAME/dekon.git
    git push -u origin main
    ```
-
-   (If `git` isn't installed, install it from https://git-scm.com/downloads.)
+   If Git asks for your name/email first, run:
+   ```bash
+   git config user.name "Your Name"
+   git config user.email "you@example.com"
+   ```
 
 ---
 
-## Part C — Deploy on Render
+## Part C — Deploy on Vercel
 
-1. Go to **https://render.com** and click **Get Started** → sign up **with GitHub** (free, no card).
-2. Click **New +** (top right) → **Web Service**.
-3. Find and select your `dekon` repository.
-4. Fill in:
-   - **Name:** `dekon-finance` (this becomes your URL `dekon-finance.onrender.com`)
-   - **Region:** pick one near you
-   - **Branch:** `main`
-   - **Runtime / Language:** **Node**
-   - **Build Command:** `npm install`
-   - **Start Command:** `node server/index.js`
-   - **Instance Type:** **Free**
-5. Open the **Advanced** section and click **Add Environment Variable** for EACH of these:
+1. Go to **https://vercel.com** → **Sign Up** → choose **Continue with GitHub**
+   (free, no card). Authorize Vercel when GitHub asks.
+2. In the Vercel dashboard click **Add New…** → **Project**.
+3. Find your **`dekon`** repository and click **Import**.
+   (If it's not listed, click **Adjust GitHub App Permissions** and grant access.)
+4. On the configure page, **expand "Environment Variables"** and add these one by one:
 
    | Key | Value |
    |-----|-------|
-   | `NODE_VERSION` | `24.19.0` |
-   | `JWT_SECRET` | any long random text, e.g. `dekon-secret-9f8a7b6c5d4e3f2a1` |
-   | `APP_URL` | `https://dekon-finance.onrender.com` (use YOUR actual Render URL) |
-   | `TURSO_DATABASE_URL` | the libsql:// URL from Part A |
-   | `TURSO_AUTH_TOKEN` | the eyJ... token from Part A |
+   | `JWT_SECRET` | any long random text, e.g. `dekon-vercel-secret-9f8a7b6c5d` |
+   | `TURSO_DATABASE_URL` | your `libsql://...` URL from Part A |
+   | `TURSO_AUTH_TOKEN` | your `eyJ...` token from Part A |
 
-   *(Optional — add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` later once you set up Google login.)*
+   Leave the Build/Output settings at their defaults — the included `vercel.json`
+   configures everything automatically.
 
-6. Click **Create Web Service**.
-7. Wait 2–4 minutes while it builds. When the status says **Live**, click the URL at the top (e.g. `https://dekon-finance.onrender.com`).
+5. Click **Deploy**. Wait ~1–2 minutes. When you see the celebration screen,
+   click the picture/URL to open your live site, e.g.
+   `https://dekon-xxxx.vercel.app`.
 
-🎉 **DEKON is live on the internet.** Open it on your phone, create an account, and your data is saved to the cloud database.
-
-> The free plan "sleeps" after 15 minutes without visitors. The first visit after sleeping takes ~30–60 seconds to wake up; after that it's fast. This is normal and free.
+🎉 Create an account on the live site — your data now saves to the cloud.
 
 ---
 
-## Updating the app after code changes
+## Part D — Set APP_URL and enable Google Sign-In (optional but recommended)
 
-Any time you change code, push it to GitHub and Render auto-deploys:
+For cookies/login to work reliably after deploy, tell the app its own URL:
+
+1. In Vercel → your project → **Settings** → **Environment Variables**.
+2. Add:
+   - **Key:** `APP_URL`
+   - **Value:** your full Vercel URL, e.g. `https://dekon-xxxx.vercel.app`
+3. Go to the **Deployments** tab → open the latest deployment's menu (⋯) →
+   **Redeploy** (so the new variable takes effect).
+
+For "Sign in with Google":
+1. Google Cloud Console → your OAuth client.
+2. Add this **Authorized redirect URI** (use your real Vercel URL):
+   ```
+   https://dekon-xxxx.vercel.app/api/auth/google/callback
+   ```
+3. In Vercel environment variables add `GOOGLE_CLIENT_ID` and
+   `GOOGLE_CLIENT_SECRET`, then redeploy.
+
+---
+
+## Updating the app after changes
 
 ```bash
 git add .
-git commit -m "describe what changed"
+git commit -m "describe your change"
 git push
 ```
-
----
-
-## Enable Google Sign-In on the live site
-
-1. Google Cloud Console → your OAuth client.
-2. Add this **Authorized redirect URI** (use your real Render URL):
-   ```
-   https://dekon-finance.onrender.com/api/auth/google/callback
-   ```
-3. In Render → your service → **Environment**, add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, then save (it auto-redeploys).
+Vercel automatically rebuilds and deploys in ~1 minute.
 
 ---
 
 ## Troubleshooting
 
-- **"Site can't be reached" right after deploy** — wait a minute; Render is still building.
-- **502 / app crashed** — open Render → **Logs** to see the error (usually a missing/typo'd environment variable).
-- **Data not saving** — double-check `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` in Render.
-- **Login logs me out on refresh** — make sure `APP_URL` matches your real Render URL exactly (with `https://`).
+- **Login doesn't "stick" / logged out on refresh** → `APP_URL` is missing or
+  wrong. Add it as shown in Part D and redeploy.
+- **"Internal server error" on sign up** → check Vercel → **Logs**, and verify
+  `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` are correct with no extra spaces.
+- **Function timeout on first visit** — rare on the free plan; just refresh.
+- **Local development still works** — `npm start` uses your local database file
+  unless you create a `.env` with the Turso values.
