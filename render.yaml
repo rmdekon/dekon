@@ -1,0 +1,31 @@
+# Render.com blueprint for DEKON (free web service, no card required).
+# After pushing to GitHub, go to https://dashboard.render.com/blueprints
+# and point it at your repo. Then set the secret environment variables
+# (JWT_SECRET, APP_URL, TURSO_DATABASE_URL, TURSO_AUTH_TOKEN) in the dashboard.
+services:
+  - type: web
+    name: dekon-finance
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server/index.js
+    envVars:
+      - key: NODE_VERSION
+        value: 24.19.0
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Set these securely in the Render dashboard (do not commit real values):
+      - key: JWT_SECRET
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
