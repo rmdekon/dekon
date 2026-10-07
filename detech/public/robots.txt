@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /$
+Allow: /login
+
+# Everything behind authentication must never be indexed.
+Disallow: /dashboard
+Disallow: /api
+
+Sitemap: /sitemap.xml

@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+.github
+coverage
+test-results
+playwright-report
+*.log
+.env
+.env.local
+dev.db
+dev.db-journal
+*.sqlite
+README.md
+INSTALL.md

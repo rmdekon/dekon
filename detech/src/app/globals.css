@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+/* ───────────────────────── DETECH design tokens ───────────────────────── */
+@theme {
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #d9e5ff;
+  --color-brand-200: #bcd1ff;
+  --color-brand-300: #8eb3ff;
+  --color-brand-400: #598aff;
+  --color-brand-500: #3362ff;
+  --color-brand-600: #1d3ff5;
+  --color-brand-700: #162fe1;
+  --color-brand-800: #1829b6;
+  --color-brand-900: #1a298f;
+  --color-brand-950: #151b57;
+
+  --color-ink-50: #f6f7f9;
+  --color-ink-100: #eceef2;
+  --color-ink-200: #d4d9e3;
+  --color-ink-300: #aeb7ca;
+  --color-ink-400: #8290ac;
+  --color-ink-500: #637392;
+  --color-ink-600: #4e5c78;
+  --color-ink-700: #404a61;
+  --color-ink-800: #374052;
+  --color-ink-900: #313847;
+  --color-ink-950: #0e1117;
+
+  /* Native system stack — no webfont request, no layout shift, works offline.
+     Prepend `var(--font-app)` here if you enable next/font in layout.tsx. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji";
+
+  --radius-card: 0.875rem;
+}
+
+/* ──────────────────────────── Base styles ──────────────────────────── */
+@layer base {
+  * {
+    border-color: var(--color-ink-200);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-ink-50);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-200);
+  }
+
+  /* Thin, unobtrusive scrollbars */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-ink-300);
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-ink-400);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+}
+
+/* ───────────────────────────── Utilities ───────────────────────────── */
+@utility card {
+  background-color: white;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-ink-200);
+  box-shadow:
+    0 1px 2px 0 rgb(16 24 40 / 0.04),
+    0 1px 3px 0 rgb(16 24 40 / 0.04);
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Entry animations used by dashboard panels */
+@keyframes detech-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-rise {
+  animation: detech-rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes detech-draw {
+  from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@utility animate-draw {
+  stroke-dasharray: 1000;
+  animation: detech-draw 1.4s ease-out forwards;
+}
